@@ -52,6 +52,20 @@ public abstract class WxaUtil {
 		}
 		return null;
 	}
+	
+	public static WxaUserPhoneInfo decryptUserPhoneInfo(String session_key, String encryptedData, String iv) {
+		try {
+			Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
+			Key sKeySpec = new SecretKeySpec(Base64.decodeBase64(session_key), "AES");
+			cipher.init(Cipher.DECRYPT_MODE, sKeySpec, new IvParameterSpec(Base64.decodeBase64(iv)));
+			byte[] resultByte = cipher.doFinal(Base64.decodeBase64(encryptedData));
+			String data = new String(PKCS7Encoder.decode(resultByte), StandardCharsets.UTF_8);
+			return JsonUtil.parseObject(data, WxaUserPhoneInfo.class);
+		} catch (Exception e) {
+			logger.error("", e);
+		}
+		return null;
+	}
 
 	/**
 	 * 校验wx.getUserInfo rawData 签名,同时返回 userinfo
